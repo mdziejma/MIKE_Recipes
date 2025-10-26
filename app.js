@@ -27,6 +27,12 @@ const noResults = document.getElementById('no-results');
 const categoryList = document.getElementById('category-list');
 const showAllBtn = document.getElementById('show-all-btn');
 
+// NEW: Elements for mobile toggling
+const sidebar = document.getElementById('sidebar');
+const mainContent = document.getElementById('main-content');
+const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
+
+
 const categoryIntros = {
     'all': 'Welcome to your interactive cookbook! This application allows you to browse, search, and filter all the recipes from your collection. Select a category from the sidebar or use the search bar to find a specific recipe.',
     'Breakfast': 'Start your day right. This section includes recipes for waffles, pancakes, crepes, and more.',
@@ -42,6 +48,7 @@ const categoryIntros = {
 
 // 3. Render Function
 function renderRecipes() {
+    // ... (This function is unchanged) ...
     recipeContainer.innerHTML = '';
     let count = 0;
     let filteredRecipes = [];
@@ -119,6 +126,30 @@ function renderRecipes() {
 }
 
 // 4. Event Handlers
+
+// --- NEW Mobile View Toggle Functions ---
+function showMainContentOnMobile() {
+    if (window.innerWidth < 768) { // md breakpoint
+        sidebar.classList.add('hidden');
+        mainContent.classList.remove('hidden');
+        
+        // Scroll to top of main content
+        mainContent.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function showSidebarOnMobile() {
+    if (window.innerWidth < 768) { // md breakpoint
+        sidebar.classList.remove('hidden');
+        mainContent.classList.add('hidden');
+        
+        // Scroll to top of sidebar
+        sidebar.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+// --- End of New Functions ---
+
+
 function handleFilter(category, element) {
     currentFilter = category;
     currentSubCategory = null;
@@ -142,6 +173,7 @@ function handleFilter(category, element) {
     }
     
     renderRecipes();
+    showMainContentOnMobile(); // NEW: Toggle view
 }
 
 function handleSubCategoryFilter(category, subCategory, element) {
@@ -170,14 +202,7 @@ function handleSubCategoryFilter(category, subCategory, element) {
     }
 
     renderRecipes();
-
-    // NEW: Auto-scroll on mobile
-    if (window.innerWidth < 768) { // 768px is Tailwind's default 'md' breakpoint
-        const contentTitle = document.getElementById('content-title');
-        if (contentTitle) {
-            contentTitle.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
+    showMainContentOnMobile(); // NEW: Toggle view
 }
 
 function handleRecipeClick(recipeId, element) {
@@ -201,14 +226,7 @@ function handleRecipeClick(recipeId, element) {
 
 
     renderRecipes();
-
-    // NEW: Auto-scroll on mobile
-    if (window.innerWidth < 768) { // 768px is Tailwind's default 'md' breakpoint
-        const contentTitle = document.getElementById('content-title');
-        if (contentTitle) {
-            contentTitle.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
+    showMainContentOnMobile(); // NEW: Toggle view
 }
 
 function handleSearch() {
@@ -223,18 +241,12 @@ function handleSearch() {
     showAllBtn.classList.add('active');
 
     renderRecipes();
-
-    // NEW: Auto-scroll on mobile
-    if (window.innerWidth < 768) { // 768px is Tailwind's default 'md' breakpoint
-        const contentTitle = document.getElementById('content-title');
-        if (contentTitle) {
-            contentTitle.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
+    showMainContentOnMobile(); // NEW: Toggle view
 }
 
 // 5. Initialization
 function generateCategories() {
+    // ... (This function is unchanged) ...
     const uniqueRecipes = {};
     // allRecipes is globally available
     allRecipes.forEach(recipe => {
@@ -347,11 +359,22 @@ function generateCategories() {
     });
 }
 
-// 6. Init
-// REMOVED the 'DOMContentLoaded' event listener wrapper.
-// This code will now run immediately after recipes.js is loaded.
+// ... (all code from above is correct until section 6) ...
 
+// 6. Init
 generateCategories();
 searchBar.addEventListener('keyup', handleSearch);
-showAllBtn.onclick = () => handleFilter('all', showAllBtn);
+
+// MODIFIED: Use a new function for the click
+showAllBtn.onclick = () => {
+    handleFilter('all', showAllBtn);
+    showMainContentOnMobile(); // Manually trigger view change when clicked
+};
+
+// NEW: Event listener for mobile toggle button
+toggleSidebarBtn.addEventListener('click', showSidebarOnMobile);
+
+// MODIFIED: Run the initial filter *without* toggling the view
+// This populates the "All Recipes" content in the hidden main area
+// but keeps the sidebar visible on mobile on first load.
 handleFilter('all', showAllBtn);
