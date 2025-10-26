@@ -94,7 +94,7 @@ function renderRecipes() {
                     
                     <h4 class="text-lg font-semibold text-stone-700 mb-2">Instructions</h4>
                     <div class="text-stone-600 space-y-2 text-sm">
-                        ${recipe.instructions.map(inst => `<p>${inst}</p>).join('')}
+                        ${recipe.instructions.map(inst => `<p>${inst}</p>`).join('')}
                     </div>
                 </div>
             </div>
@@ -299,7 +299,7 @@ function generateCategories() {
                 recipeLi.onclick = (e) => {
                     e.stopPropagation();
                     handleRecipeClick(recipe.id, recipeLi);
-};
+                }; // <-- *** THE FIX WAS ADDING THE } ON THIS LINE ***
                 submenu.appendChild(recipeLi);
             });
         }
@@ -311,10 +311,10 @@ function generateCategories() {
 }
 
 // 6. Init
-document.addEventListener('DOMContentLoaded', () => {
-    generateCategories();
-    searchBar.addEventListener('keyup', handleSearch);
-    showAllBtn.onclick = () => handleFilter('all', showAllBtn);
-    handleFilter('all', showAllBtn);
-});
+// REMOVED the 'DOMContentLoaded' event listener wrapper.
+// This code will now run immediately after recipes.js is loaded.
 
+generateCategories();
+searchBar.addEventListener('keyup', handleSearch);
+showAllBtn.onclick = () => handleFilter('all', showAllBtn);
+handleFilter('all', showAllBtn);
