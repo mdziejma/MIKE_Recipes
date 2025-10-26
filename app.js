@@ -1,21 +1,10 @@
-// NEW: Combine all recipe arrays from separate files
-const allRecipes = [
-    ...recipesBreakfast,
-    ...recipesBreads,
-    ...recipesSourdough,
-    ...recipesMains,
-    ...recipesSides,
-    ...recipesSauces,
-    ...recipesDesserts,
-    ...recipesBeverages,
-    ...recipesTechniques
-];
-
 // 1. State
 let currentFilter = 'all';
 let currentSubCategory = null;
 let currentRecipeId = null;
 let currentSearch = '';
+let currentBookRecipes = []; // NEW: This will hold the recipes for the selected book
+let loadedScripts = new Set(); // NEW: To track loaded scripts
 
 // 2. Elements
 const recipeContainer = document.getElementById('recipe-container');
@@ -26,43 +15,33 @@ const recipeCount = document.getElementById('recipe-count');
 const noResults = document.getElementById('no-results');
 const categoryList = document.getElementById('category-list');
 const showAllBtn = document.getElementById('show-all-btn');
-
-// Elements for mobile toggling
 const sidebar = document.getElementById('sidebar');
 const mainContent = document.getElementById('main-content');
 const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
+const bookSelect = document.getElementById('book-select'); // NEW: Book dropdown
 
 
 const categoryIntros = {
-    'all': 'Welcome to your interactive cookbook! This application allows you to browse, search, and filter all the recipes from your collection. Select a category from the sidebar or use the search bar to find a specific recipe.',
-    'Breakfast': 'Start your day right. This section includes recipes for waffles, pancakes, crepes, and more.',
-    'Breads, Doughs & Tortillas': 'From pizza and pasta to tortillas and pierogi, find all your foundational dough recipes here.',
-    'Sourdough': 'Your dedicated section for all things sourdough, including artisan bread, crackers, and starter-based recipes.',
-    'Main Courses': 'The heart of the meal. This category features everything from quick weeknight air-fryer recipes to low-and-slow smoked brisket.',
-    'Sides & Appetizers': 'Complete your meal with these essential sides, including potatoes, rice pilaf, and classic appetizers.',
-    'Sauces, Condiments & Brines': 'Elevate your dishes with homemade sauces, dressings, brines, and pickles.',
-    'Desserts & Snacks': 'Treat yourself. Find recipes for cookies, roasted nuts, and other sweet snacks.',
-    'Beverages': 'Recipes for cocktails and coffee to round out your collection.',
-    'Techniques & Base Components': 'The building blocks. Learn how to make components like sodium citrate or reference core techniques like pressure-cooker reheating.'
+    // ... (This object is unchanged) ...
 };
 
 // 3. Render Function
 function renderRecipes() {
-    // ... (This function is unchanged) ...
     recipeContainer.innerHTML = '';
     let count = 0;
     let filteredRecipes = [];
 
-    // De-duplicate the raw data first, keeping the latest by ID
+    // De-duplicate the raw data first
     const uniqueRecipesById = {};
-    // allRecipes is now globally available from recipes.js
-    allRecipes.forEach(recipe => {
-        uniqueRecipesById[recipe.id] = recipe; // Overwrites older with newer if IDs match
+    // CHANGED: Use currentBookRecipes
+    currentBookRecipes.forEach(recipe => {
+        uniqueRecipesById[recipe.id] = recipe; 
     });
     const latestUniqueRecipes = Object.values(uniqueRecipesById);
 
 
     if (currentRecipeId) {
+        // ... (rest of function is unchanged) ...
         filteredRecipes = latestUniqueRecipes.filter(recipe => recipe.id === currentRecipeId);
         const recipe = filteredRecipes[0];
         if (recipe) {
@@ -93,14 +72,13 @@ function renderRecipes() {
             
     count = filteredRecipes.length;
 
-
     if (count === 0) {
         noResults.classList.remove('hidden');
     } else {
         noResults.classList.add('hidden');
     }
 
-    filteredRecipes.sort((a,b) => a.title.localeCompare(b.title)).forEach(recipe => { // Sort alphabetically before rendering
+    filteredRecipes.sort((a,b) => a.title.localeCompare(b.title)).forEach(recipe => { 
         const card = `
             <div class="bg-white shadow-lg rounded-xl overflow-hidden flex flex-col transform transition-all duration-300 hover:shadow-2xl">
                 <div class="p-6">
@@ -126,10 +104,8 @@ function renderRecipes() {
 }
 
 // 4. Event Handlers
-
-// --- NEW: Debounce Function (CHANGE 1 of 3) ---
-// This prevents the search from running on every single keystroke.
 function debounce(func, delay = 300) {
+    // ... (This function is unchanged) ...
     let timer;
     return (...args) => {
         clearTimeout(timer);
@@ -138,11 +114,9 @@ function debounce(func, delay = 300) {
         }, delay);
     };
 }
-// --- End of New Function ---
 
-
-// --- Mobile View Toggle Functions ---
 function showMainContentOnMobile() {
+    // ... (This function is unchanged) ...
     if (window.innerWidth < 768) { // md breakpoint
         sidebar.classList.add('hidden');
         mainContent.classList.remove('hidden');
@@ -151,16 +125,16 @@ function showMainContentOnMobile() {
 }
 
 function showSidebarOnMobile() {
+    // ... (This function is unchanged) ...
     if (window.innerWidth < 768) { // md breakpoint
         sidebar.classList.remove('hidden');
         mainContent.classList.add('hidden');
         sidebar.scrollIntoView({ behavior: 'auto' });
     }
 }
-// --- End of New Functions ---
-
 
 function handleFilter(category, element) {
+    // ... (This function is unchanged) ...
     currentFilter = category;
     currentSubCategory = null;
     currentRecipeId = null;
@@ -186,6 +160,7 @@ function handleFilter(category, element) {
 }
 
 function handleSubCategoryFilter(category, subCategory, element) {
+    // ... (This function is unchanged) ...
     currentFilter = category;
     currentSubCategory = subCategory;
     currentRecipeId = null;
@@ -214,6 +189,7 @@ function handleSubCategoryFilter(category, subCategory, element) {
 }
 
 function handleRecipeClick(recipeId, element) {
+    // ... (This function is unchanged) ...
     currentRecipeId = recipeId;
     currentSearch = '';
     searchBar.value = '';
@@ -236,6 +212,7 @@ function handleRecipeClick(recipeId, element) {
 }
 
 function handleSearch() {
+    // ... (This function is unchanged) ...
     currentSearch = searchBar.value.toLowerCase();
     currentFilter = 'all';
     currentSubCategory = null;
@@ -247,17 +224,22 @@ function handleSearch() {
     showAllBtn.classList.add('active');
 
     renderRecipes();
-
-    // UPDATED: (CHANGE 2 of 3)
-    // The search function itself should toggle the mobile view
     showMainContentOnMobile();
 }
 
 // 5. Initialization
 function generateCategories() {
-    // ... (This function is unchanged, all click handlers are correct) ...
+    // Clear existing categories
+    categoryList.innerHTML = '<li><button class="nav-button active w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150" id="show-all-btn">Show All</button></li>';
+    // Re-bind the 'Show All' button since we just re-created it
+    document.getElementById('show-all-btn').onclick = () => {
+        handleFilter('all', document.getElementById('show-all-btn'));
+        showMainContentOnMobile();
+    };
+
+    // CHANGED: Use currentBookRecipes
     const uniqueRecipes = {};
-    allRecipes.forEach(recipe => {
+    currentBookRecipes.forEach(recipe => {
         uniqueRecipes[recipe.id] = recipe;
     });
     const latestRecipes = Object.values(uniqueRecipes);
@@ -288,8 +270,8 @@ function generateCategories() {
         }
     });
 
-
     categoryOrder.forEach((category, index) => {
+        // ... (rest of this function is unchanged) ...
         if (!recipesByCategory[category]) return;
         
         const li = document.createElement('li');
@@ -373,32 +355,99 @@ function generateCategories() {
     });
 }
 
-// 6. Init
-generateCategories();
 
-// UPDATED: (CHANGE 3 of 3)
-// Use the debounce function for the search input
-searchBar.addEventListener('keyup', debounce(handleSearch, 300));
+// --- NEW APPLICATION INIT FUNCTIONS ---
 
-// "Show All" button now also toggles the view
-showAllBtn.onclick = () => {
-    handleFilter('all', showAllBtn);
-    showMainContentOnMobile();
-};
-
-// This handles the "Back to Categories" button
-toggleSidebarBtn.addEventListener('click', showSidebarOnMobile);
-
-// On initial page load, run the filter once to populate the 
-// "All Recipes" content in the (hidden) main area.
-handleFilter('all', showAllBtn);
-
-// Explicitly set the initial mobile state
-if (window.innerWidth < 768) {
-    mainContent.classList.add('hidden');
-    sidebar.classList.remove('hidden');
-} else {
-    // On desktop, make sure both are visible
-    mainContent.classList.remove('hidden');
-    sidebar.classList.remove('hidden');
+// This function dynamically loads a script and returns a promise
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        // Only load if it's not already loaded
+        if (loadedScripts.has(src)) {
+            resolve();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => {
+            loadedScripts.add(src);
+            resolve();
+        };
+        script.onerror = () => reject(new Error(`Script load error for ${src}`));
+        document.head.appendChild(script);
+    });
 }
+
+// This function clears the old state and re-builds the UI
+function initializeBookUI() {
+    // 1. Re-generate categories in the sidebar
+    generateCategories();
+    
+    // 2. Reset the main content view to "All Recipes"
+    const showAllButton = document.getElementById('show-all-btn');
+    handleFilter('all', showAllButton);
+
+    // 3. Set the correct view for mobile/desktop
+    if (window.innerWidth < 768) {
+        showSidebarOnMobile(); // Show sidebar by default on book change
+    } else {
+        mainContent.classList.remove('hidden');
+        sidebar.classList.remove('hidden');
+    }
+}
+
+// This is the master function to load a new book
+async function loadBook(bookId) {
+    const book = allBooks[bookId];
+    if (!book) {
+        console.error("Book not found:", bookId);
+        return;
+    }
+
+    // 1. Create a list of all scripts that need to be loaded
+    const scriptPromises = book.sources.map(source => loadScript(source.file));
+    
+    try {
+        // 2. Wait for all scripts to be loaded
+        await Promise.all(scriptPromises);
+
+        // 3. Once loaded, build the master recipe list for this book
+        currentBookRecipes = [];
+        for (const source of book.sources) {
+            if (window[source.arrayName]) {
+                currentBookRecipes.push(...window[source.arrayName]);
+            } else {
+                console.error(`Recipe array ${source.arrayName} not found in window.`);
+            }
+        }
+
+        // 4. Now that recipes are loaded, re-initialize the UI
+        initializeBookUI();
+
+    } catch (error) {
+        console.error("Failed to load one or more recipe scripts:", error);
+    }
+}
+
+// This function runs once on page load to set up the book dropdown
+function populateBookSelector() {
+    for (const bookId in allBooks) {
+        const option = document.createElement('option');
+        option.value = bookId;
+        option.textContent = allBooks[bookId].title;
+        bookSelect.appendChild(option);
+    }
+}
+
+
+// 6. Init
+// These event listeners are attached *once* on page load.
+searchBar.addEventListener('keyup', debounce(handleSearch, 300));
+toggleSidebarBtn.addEventListener('click', showSidebarOnMobile);
+bookSelect.addEventListener('change', (e) => loadBook(e.target.value));
+
+// Initial page setup
+populateBookSelector();
+
+// Load the *first* book in the list by default
+const defaultBookId = bookSelect.value;
+loadBook(defaultBookId);

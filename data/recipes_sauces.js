@@ -1,4 +1,4 @@
-const recipesSauces = [
+var recipesSauces = [
     {
         "id": "tzatziki",
         "title": "Tzatziki",
