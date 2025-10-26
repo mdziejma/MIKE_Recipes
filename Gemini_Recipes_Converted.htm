@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Interactive Cookbook</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Stone and Teal -->
+    <!-- Application Structure Plan: A two-column "master-detail" SPA. Left sidebar for navigation (by category) and global search. Right "detail" panel is a responsive grid that dynamically displays recipe cards. This structure is best for a cookbook, allowing users to browse, filter, and search the entire collection easily, which is more user-friendly than a static, linear document. -->
+    <!-- Visualization & Content Choices: Report Info (Recipe) -> Goal (Inform) -> Presentation (HTML/Tailwind "Card") -> Interaction (Filter by category button, search by title input) -> Justification (Cards are a standard, responsive UI for displaying discrete info snippets. JS filtering provides a fast, interactive way to explore the 80+ recipes.) -> Library/Method (Vanilla JS for data array, DOM manipulation, and event listeners) - Confirming NO SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .nav-button.active {
+            background-color: #f5f5f4; /* stone-100 */
+            color: #0d9488; /* teal-600 */
+            font-weight: 600;
+        }
+        .nav-button.active .chevron {
+            transform: rotate(90deg);
+            color: #0d9488; /* teal-600 */
+        }
+        .recipe-link.active {
+            color: #0d9488; /* teal-600 */
+            font-weight: 600;
+            background-color: #f5f5f4; /* stone-100 */
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800">
+
+    <div class="flex flex-col md:flex-row h-screen">
+        
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="w-full md:w-80 bg-white shadow-xl p-6 overflow-y-auto flex-shrink-0 z-10">
+            <h1 class="text-3xl font-bold text-teal-700 mb-6">My Cookbook</h1>
+            
+            <div class="mb-6">
+                <label for="search-bar" class="block text-sm font-medium text-stone-600 mb-2">Search Recipes</label>
+                <input type="search" id="search-bar" placeholder="e.g., Chicken, Bread, Smoke" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+            </div>
+            
+            <h2 class="text-xl font-semibold text-stone-700 mb-4">Categories</h2>
+            <ul id="category-list" class="space-y-2">
+                <li><button class="nav-button active w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150" onclick="handleFilter('all', this)">Show All</button></li>
+                <li>
+                    <button class="nav-button flex justify-between items-center w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150" onclick="handleFilter('Breakfast', this)" data-category="Breakfast">
+                        <span>1. Breakfast</span>
+                        <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
+                    </button>
+                    <ul class="recipe-submenu hidden ml-4 space-y-1 mt-1"></ul>
+                </li>
+                <li>
+                    <button class="nav-button flex justify-between items-center w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150" onclick="handleFilter('Breads, Doughs & Tortillas', this)" data-category="Breads, Doughs & Tortillas">
+                        <span>2. Breads, Doughs & Tortillas</span>
+                        <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
+                    </button>
+                    <ul class="recipe-submenu hidden ml-4 space-y-1 mt-1"></ul>
+                </li>
+                <li>
+                    <button class="nav-button flex justify-between items-center w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150" onclick="handleFilter('Sourdough', this)" data-category="Sourdough">
+                        <span>3. Sourdough</span>
+                        <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
+                    </button>
+                    <ul class="recipe-submenu hidden ml-4 space-y-1 mt-1"></ul>
+                </li>
+                <li>
+                    <button class="nav-button flex justify-between items-center w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150" onclick="handleFilter('Main Courses', this)" data-category="Main Courses">
+                        <span>4. Main Courses</span>
+                        <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
+                    </button>
+                    <ul class="recipe-submenu hidden ml-4 space-y-1 mt-1"></ul>
+                </li>
+                <li>
+                    <button class="nav-button flex justify-between items-center w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150" onclick="handleFilter('Sides & Appetizers', this)" data-category="Sides & Appetizers">
+                        <span>5. Sides & Appetizers</span>
+                        <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
+                    </button>
+                    <ul class="recipe-submenu hidden ml-4 space-y-1 mt-1"></ul>
+                </li>
+                <li>
+                    <button class="nav-button flex justify-between items-center w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150" onclick="handleFilter('Sauces, Condiments & Brines', this)" data-category="Sauces, Condiments & Brines">
+                        <span>6. Sauces, Condiments & Brines</span>
+                        <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
+                    </button>
+                    <ul class="recipe-submenu hidden ml-4 space-y-1 mt-1"></ul>
+                </li>
+                <li>
+                    <button class="nav-button flex justify-between items-center w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150" onclick="handleFilter('Desserts & Snacks', this)" data-category="Desserts & Snacks">
+                        <span>7. Desserts & Snacks</span>
+                        <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
+                    </button>
+                    <ul class="recipe-submenu hidden ml-4 space-y-1 mt-1"></ul>
+                </li>
+                <li>
+                    <button class="nav-button flex justify-between items-center w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150" onclick="handleFilter('Beverages', this)" data-category="Beverages">
+                        <span>8. Beverages</span>
+                        <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
+                    </button>
+                    <ul class="recipe-submenu hidden ml-4 space-y-1 mt-1"></ul>
+                </li>
+                <li>
+                    <button class="nav-button flex justify-between items-center w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150" onclick="handleFilter('Techniques & Base Components', this)" data-category="Techniques & Base Components">
+                        <span>9. Techniques & Base Components</span>
+                        <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
+                    </button>
+                    <ul class="recipe-submenu hidden ml-4 space-y-1 mt-1"></ul>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto bg-stone-50 p-6 md:p-10">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 id="content-title" class="text-4xl font-bold text-stone-800">All Recipes</h1>
+                    <span id="recipe-count" class="text-lg font-medium text-stone-500 bg-stone-200 px-3 py-1 rounded-full"></span>
+                </div>
+                
+                <div class="mb-6 p-4 bg-white border border-stone-200 rounded-xl shadow-sm">
+                    <p id="content-intro" class="text-stone-600">
+                        Welcome to your interactive cookbook! This application allows you to browse, search, and filter all the recipes from your collection. Select a category from the sidebar or use the search bar to find a specific recipe.
+                    </p>
+                </div>
+                
+                <div id="recipe-container" class="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                    <!-- Recipe cards will be dynamically inserted here by JavaScript -->
+                </div>
+                <div id="no-results" class="hidden text-center py-20">
+                    <h3 class="text-2xl font-semibold text-stone-600">No Recipes Found</h3>
+                    <p class="text-stone-500 mt-2">Try adjusting your search or filter.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 1. Data Store
+        const allRecipes = [
+            {
+                "id": "waffle-2",
+                "title": "Waffle (2)",
+                "category": "Breakfast",
+                "ingredients": [
+                    "2 eggs",
+                    "3/4 cup milk",
+                    "2 Tbsp Oil",
+                    "1.5 tsp baking powder",
+                    "1.5 tsp sugar",
+                    "0.5 tsp salt",
+                    "1 cup flour"
+                ],
+                "instructions": [
+                    "Combine wet ingredients.",
+                    "Combine dry ingredients.",
+                    "Mix wet and dry, and cook in waffle iron."
+                ]
+            },
+            {
+                "id": "pancakes-mix",
+                "title": "Pancakes (Dry Mix)",
+                "category": "Breakfast",
+                "ingredients": [
+                    "4 cups flour",
+                    "1/4 tsp baking powder",
+                    "1/4 tsp baking soda",
+                    "1/2 tsp salt",
+                    "1 tsp sugar"
+                ],
+                "instructions": [
+                    "Note: Per cup flour"
+                ]
+            },
+            {
+                "id": "pancakes-batter",
+                "title": "Pancakes (Batter)",
+                "category": "Breakfast",
+                "ingredients": [
+                    "1 cup mix",
+                    "2 Tbsp butter (melted)",
+                    "1 egg (separated)",
+                    "1 cup milk"
+                ],
+                "instructions": [
+                    "Mix butter/yolk and milk.",
+                    "Beat egg white separately.",
+                    "Fold egg white and milk/yolk mixture together, then mix with dry ingredients."
+                ]
+            },
+            {
+                "id": "yeast-waffles-4",
+                "title": "Yeast Waffles (4)",
+                "category": "Breakfast",
+                "ingredients": [
+                    "2 cup milk",
+                    "0.25 oz yeast (1 pkg)",
+                    "1/2 cup warm water",
+                    "1/2 cup butter",
+                    "1 tsp salt",
+                    "1 tsp sugar",
+                    "3 cup flour",
+                    "Add later: 2 eggs, 1 tsp baking soda"
+                ],
+                "instructions": [
+                    "Heat/mix everything *except* the eggs and baking soda.",
+                    "Let sit overnight at room temperature.",
+                    "When ready to cook, add eggs and baking soda, mix, and cook."
+                ]
+            },
+            {
+                "id": "crepes-x2",
+                "title": "Crepes (x2)",
+                "category": "Breakfast",
+                "ingredients": [
+                    "1 egg",
+                    "1/2 cup milk",
+                    "1 Tbsp sugar",
+                    "1 pinch salt",
+                    "1/2 cup flour",
+                    "1 Tbsp melted butter (or oil)"
+                ],
+                "instructions": [
+                    "Mix all ingredients.",
+                    "Cook on a griddle. Be careful not to launch it out of the press."
+                ]
+            },
+            {
+                "id": "classic-english-muffins",
+                "title": "Classic English Muffins",
+                "category": "Breads, Doughs & Tortillas",
+                "ingredients": [
+                    "3 cups (360g) All-Purpose Flour",
+                    "1 cup (240ml) Milk",
+                    "1/4 cup (60ml) Warm Water (105-115°F)",
+                    "2 tsp (10g) Instant Yeast",
+                    "1 tbsp (13g) Sugar",
+                    "1 tsp (6g) Salt",
+                    "2 tbsp (28g) Unsalted Butter, softened",
+                    "Cornmeal (for dusting)"
+                ],
+                "instructions": [
+                    "Activate Yeast (if Active Dry): Combine warm water, sugar, and yeast. Let sit 5-10 min.",
+                    "Mix Dough: Whisk flour/salt. Warm milk/butter. Add wet to dry and mix. Knead 6-8 min until smooth but tacky.",
+                    "First Proof: Oiled bowl. Combi: 85-90°F @ 80% humidity for 30-45 min. (Standard: 1-1.5 hours).",
+                    "Shape: Roll dough to 1/2-inch thick. Cut with 3-inch cutter.",
+                    "Second Proof: Place on cornmeal-dusted sheet. Combi: 85-90°F @ 80% humidity for 20-30 min. (Standard: 30-45 min).",
+                    "Cook: On low/medium-low skillet for 5-8 minutes per side. Cool on wire rack."
+                ]
+            },
+            {
+                "id": "pizza-dough",
+                "title": "Pizza Dough",
+                "category": "Breads, Doughs & Tortillas",
+                "ingredients": [
+                    "690 g Flour",
+                    "20g Salt",
+                    "9g Yeast",
+                    "15g Sugar",
+                    "455g Water",
+                    "15g Olive Oil"
+                ],
+                "instructions": [
+                    "Using a dough hook, mix until solid on Low.",
+                    "Mix for 5 minutes on Medium.",
+                    "Knead on a floured counter.",
+                    "Cover and let rise for 18-24 hours."
+                ]
+            },
+            {
+                "id": "pita",
+                "title": "Pita",
+                "category": "Breads, Doughs & Tortillas",
+                "ingredients": [
+                    "400g flour",
+                    "100g whole wheat flour",
+                    "7g yeast",
+                    "1/4 tsp sugar",
+                    "2 tsp salt",
+                    "325g water"
+                ],
+                "instructions": [
+                    "Mix dough, cover with oil, and let rise for 1-1.5 hours.",
+                    "Split into 8 balls. Let rise for 30 minutes.",
+                    "Roll 1/4 inch thick and let rest for 15 minutes.",
+                    "Cook (on a hot skillet or pizza stone)."
+                ]
+            },
+            {
+                "id": "flour-tortillas-6x",
+                "title": "Flour Tortillas (6x)",
+                "category": "Breads, Doughs & Tortillas",
+                "ingredients": [
+                    "1 3/4 cup flour",
+                    "5 Tbsp butter (melted)",
+                    "3/4 cup water",
+                    "3/4 tsp salt"
+                ],
+                "instructions": [
+                    "Dissolve salt in water.",
+                    "Add melted butter/flour to a mixer.",
+                    "Pour in salt water until you reach the right consistency (meatball-sized dough balls).",
+                    "Cook on a griddle."
+                ]
+            },
+            {
+                "id": "tortilla-winner-x6-8",
+                "title": "Tortilla (Winner x6-8)",
+                "category": "Breads, Doughs & Tortillas",
+                "ingredients": [
+                    "1 cup flour",
+                    "1 cup masa",
+                    "2 Tbsp melted butter",
+                    "1 cup water",
+                    "(For 2x: 1/4 cup each)"
+                ],
+                "instructions": [
+                    "In a tortilla press, squish the dough ball.",
+                    "Rotate the dough, and squish again.",
+                    "Cook on an open griddle/pan."
+                ]
+            },
+            {
+                "id": "pasta-dough",
+                "title": "Pasta Dough",
+                "category": "Breads, Doughs & Tortillas",
+                "ingredients": [
+                    "1 cup flour",
+                    "1 egg",
+                    "Olive oil",
+                    "Salt",
+                    "Water (for consistency)"
+                ],
+                "instructions": [
+                    "Combine ingredients to form a dough.",
+                    "Roll down in pasta maker to setting 3 or 2.",
+                    "Cut as desired."
+                ]
+            },
+            {
+                "id": "wonton-dough",
+                "title": "Wonton Dough",
+                "category": "Breads, Doughs & Tortillas",
+                "ingredients": [
+                    "2 cups flour",
+                    "1 egg",
+                    "3/4 tsp salt",
+                    "1/2 cup water"
+                ],
+                "instructions": [
+                    "Combine to form a dough.",
+                    "Use a pasta roller to roll thin (Setting 1)."
+                ]
+            },
+            {
+                "id": "ramen-dough-x4",
+                "title": "Ramen Dough (x4)",
+                "category": "Breads, Doughs & Tortillas",
+                "ingredients": [
+                    "400 g flour",
+                    "4g salt",
+                    "160 g water",
+                    "6 g baking soda"
+                ],
+                "instructions": [
+                    "Mix ingredients.",
+                    "Knead (Pasta roller setting 2).",
+                    "Cut and let sit overnight."
+                ]
+            },
+            {
+                "id": "pierogi",
+                "title": "Pierogi",
+                "category": "Breads, Doughs & Tortillas",
+                "ingredients": [
+                    "Dough: 4.5 cups flour, 3 eggs, 2 cups sour cream, 2 tsp salt, 2 Tbsp butter, 2 Tbsp oil",
+                    "Filling: Mashed potatoes + stuff (e.g., cheese, bacon)"
+                ],
+                "instructions": [
+                    "Make the dough (mix dry, then add wet).",
+                    "Roll in pasta maker to setting 3.",
+                    "Cut circles, fill, water the edge, and crimp.",
+                    "Freeze or boil."
+                ]
+            },
+            {
+                "id": "gnocchi",
+                "title": "Gnocchi",
+                "category": "Breads, Doughs & Tortillas",
+                "ingredients": [
+                    "2 pounds potatoes",
+                    "2 cups flour",
+                    "2 tsp salt",
+                    "2 Tbsp butter",
+                    "1 large egg, beaten"
+                ],
+                "instructions": [
+                    "Bake or boil potatoes, then mash or rice them.",
+                    "Combine with flour/everything else.",
+                    "Knead until a dough forms, roll into ropes, and cut."
+                ]
+            },
+            {
+                "id": "sourdough-bread",
+                "title": "Sourdough Bread",
+                "category": "Sourdough",
+                "ingredients": [
+                    "100 g starter",
+                    "190g water",
+                    "12g olive oil",
+                    "300g flour",
+                    "8g salt",
+                    "1/4 tsp yeast",
+                    "2-3 Tbsp sugar (optional, offset with flour)"
+                ],
+                "instructions": [
+                    "Mix ingredients. Let rise for 1 hour.",
+                    "Form into a loaf and let rise for 20 minutes (final rise).",
+                    "Bake (Combi Oven): 400°F @ 80% humidity for 25 min.",
+                    "Bake (Combi Oven): 400°F @ 0% humidity for 10-15 min."
+                ]
+            },
+            {
+                "id": "sourdough-crackers",
+                "title": "Sourdough Crackers",
+                "category": "Sourdough",
+                "ingredients": [
+                    "100 g starter (discard)",
+                    "1.5 cup flour (any)",
+                    "1 tsp salt",
+                    "4 tbsp butter, melted",
+                    "Pinch of yeast (optional)"
+                ],
+                "instructions": [
+                    "Mix all ingredients.",
+                    "Chill for 30 minutes.",
+                    "Roll out very thin (Pasta roller setting 5).",
+                    "Cut with a pizza wheel, poke holes, brush with oil.",
+                    "Bake at 350°F for 20-25 minutes."
+                ]
+            },
+            {
+                "id": "sourdough-alla-gemini",
+                "title": "Sourdough alla Gemini",
+                "category": "Sourdough",
+                "ingredients": [
+                    "300g Bread flour",
+                    "215g Water",
+                    "60g starter",
+                    "12g olive oil",
+                    "6g salt"
+                ],
+                "instructions": [
+                    "Combine flour/water, mix.",
+                    "Proof (Combi): 80°F @ 75% humidity for 30-60 min.",
+                    "Add starter and mix. Rest for 20 min.",
+                    "Add 6g salt & 12g olive oil and mix.",
+                    "Place dough in an uncovered bowl in Combi Oven (80°F @ 75%).",
+                    "Fold every 30 min for 2 hours, then rest in oven for 2 more hours.",
+                    "Shape, grease pan, and place back in Combi (80°F @ 75%) for 2-3 hours.",
+                    "Bake Stage 1: 450°F @ 80-100% humidity for 20 minutes.",
+                    "Bake Stage 2: 400°F @ 0% humidity for 20-25 minutes."
+                ]
+            },
+            {
+                "id": "meatballs",
+                "title": "Meatballs",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Ground Beef and/or Pork",
+                    "1 egg",
+                    "Breadcrumbs"
+                ],
+                "instructions": [
+                    "Combine ingredients and form into balls.",
+                    "Cook: 10-15 min Air Fry (400°F) + 10 min bake (350°F)."
+                ]
+            },
+            {
+                "id": "potato-soup",
+                "title": "Potato Soup",
+                "category": "Main Courses",
+                "ingredients": [
+                    "3 Tbs butter",
+                    "1.5 cups diced leeks",
+                    "1.5 Tbsp garlic",
+                    "6 cups chicken stock",
+                    "4 baked potatoes (riced)",
+                    "1.5 cup buttermilk",
+                    "1/2 cup sour cream",
+                    "1/2 cup parmesan",
+                    "2 Tbsp vinegar"
+                ],
+                "instructions": [
+                    "Add together in a pot and simmer."
+                ]
+            },
+            {
+                "id": "chicken-in-bacon",
+                "title": "Chicken in Bacon",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Chicken (seasoned)",
+                    "Bacon"
+                ],
+                "instructions": [
+                    "Wrap bacon around chicken.",
+                    "Bake 15 min at 350°F (Low Fan)."
+                ]
+            },
+            {
+                "id": "wings",
+                "title": "Wings",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Wings",
+                    "Sauce"
+                ],
+                "instructions": [
+                    "Cook 10 min in Air Fryer (400°F).",
+                    "Toss in sauce."
+                ]
+            },
+            {
+                "id": "bacon-wrapped-beef",
+                "title": "Bacon Wrapped Beef",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Beef (seasoned)",
+                    "Bacon"
+                ],
+                "instructions": [
+                    "Wrap bacon around beef.",
+                    "Bake 20 min at 350°F (Low Fan)."
+                ]
+            },
+            {
+                "id": "sheppards-pie",
+                "title": "Sheppards Pie",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Ground Beef and/or Pork",
+                    "Cream Corn",
+                    "Mashed Potatoes"
+                ],
+                "instructions": [
+                    "Layer meat, corn, and potatoes in a baking dish.",
+                    "Bake 15 min at 350°F."
+                ]
+            },
+            {
+                "id": "sloppy-joes",
+                "title": "Sloppy Joes",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Ground Beef and/or Pork",
+                    "Onion",
+                    "Tomato Paste"
+                ],
+                "instructions": [
+                    "Brown meat, add other ingredients.",
+                    "Pressure Cook for 5 min (High)."
+                ]
+            },
+            {
+                "id": "sv-steak",
+                "title": "Sous Vide Steak",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Steak",
+                    "Seasoning (w/o salt)",
+                    "Salt (for finishing)"
+                ],
+                "instructions": [
+                    "Season steak (no salt) and vacuum seal.",
+                    "Sous Vide at 129°F (Medium-Rare) for 1-6 hours.",
+                    "Drain, dry thoroughly, season with salt.",
+                    "Sear 1-2 min each side in a very hot pan."
+                ]
+            },
+            {
+                "id": "chicken-cutlets",
+                "title": "Chicken Cutlets",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Chicken (seasoned)",
+                    "Egg",
+                    "Breading"
+                ],
+                "instructions": [
+                    "Dredge chicken in egg, then breading.",
+                    "Cook 13 min in Air Fryer (400°F)."
+                ]
+            },
+            {
+                "id": "pasta-pc",
+                "title": "Pasta (Pressure Cooker)",
+                "category": "Main Courses",
+                "ingredients": [
+                    "8 oz pasta",
+                    "2 cups liquid"
+                ],
+                "instructions": [
+                    "Pressure Cook High: (Shortest time on box / 2) + 5 min."
+                ]
+            },
+            {
+                "id": "burgers",
+                "title": "Burgers",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Ground Beef and/or Pork"
+                ],
+                "instructions": [
+                    "Smoke 30 min at 250°F.",
+                    "Flip, then smoke 20 min at 350°F."
+                ]
+            },
+            {
+                "id": "brisket",
+                "title": "Brisket",
+                "category": "Main Courses",
+                "ingredients": [
+                    "10-20 lb Brisket",
+                    "Seasoning"
+                ],
+                "instructions": [
+                    "Trim back the fat, apply seasoning.",
+                    "Smoke Fat side up (220°F) for ~7 hours (until 190°F internal).",
+                    "Cover with Butcher Paper and smoke (250°F) ~3 hours (until 200°F internal).",
+                    "Rest for 1-2 hours (or 2+ in Yeti cooler).",
+                    "Alternative: 190°F for 5 hours, wrap, 220°F for 3-4 hours."
+                ]
+            },
+            {
+                "id": "kielbasa",
+                "title": "Kielbasa",
+                "category": "Main Courses",
+                "ingredients": [
+                    "4.5 lb pork shoulder",
+                    "1 lb beef chuck",
+                    "1 lb pork belly",
+                    "3 garlic cloves",
+                    "2 tsp oregano",
+                    "2 tsp pepper",
+                    "2 Tbsp kosher salt",
+                    "1.5 tsp pink curing salt",
+                    "1 cup ice water"
+                ],
+                "instructions": [
+                    "Grind meats, mix all ingredients.",
+                    "Stuff into casings.",
+                    "Smoke (190°F) until internal temp = 155°F."
+                ]
+            },
+            {
+                "id": "sausage",
+                "title": "Sausage",
+                "category": "Main Courses",
+                "ingredients": [
+                    "4 lb pork shoulder",
+                    "1 lb pork fat",
+                    "1.5 tsp pink curing salt",
+                    "2 Tbsp salt",
+                    "1 Tbsp paprika",
+                    "1 Tbsp pepper",
+                    "1 tsp Thyme",
+                    "1 tsp garlic powder",
+                    "1 tsp Onion powder",
+                    "2 tsp dry mustard",
+                    "1/2 cup dry milk",
+                    "1 lb cheese (cubed)",
+                    "1/2 cup ice water"
+                ],
+                "instructions": [
+                    "Grind meats, mix all ingredients.",
+                    "Stuff into casings.",
+                    "Smoke (190°F) until internal temp = 155°F."
+                ]
+            },
+            {
+                "id": "prime-rib",
+                "title": "Prime Rib Roast",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Prime Rib",
+                    "Seasoning"
+                ],
+                "instructions": [
+                    "Smoke 3 hours (250°F) until internal temp = 120°F.",
+                    "Grill 5 min (400°F) to sear.",
+                    "Rest for 30 min."
+                ]
+            },
+            {
+                "id": "burger-sv",
+                "title": "Burger (Sous Vide)",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Ground Beef and/or Pork",
+                    "Seasoning"
+                ],
+                "instructions": [
+                    "Form patties and vacuum seal.",
+                    "Sous Vide 30 min at 165°F.",
+                    "Sear in a hot pan."
+                ]
+            },
+            {
+                "id": "chicken-vindaloo",
+                "title": "Chicken Vindaloo",
+                "category": "Main Courses",
+                "ingredients": [
+                    "1 Tbsp paprika",
+                    "1 Tbsp Ras El Hanout",
+                    "1 tsp Chili Powder",
+                    "1 tsp Cumin",
+                    "1 Tbsp salt",
+                    "1 Tbsp sugar",
+                    "3 Tbsp red wine vinegar",
+                    "1 onion",
+                    "Chicken",
+                    "Chicken broth"
+                ],
+                "instructions": [
+                    "Sauté onion, add spices and chicken.",
+                    "Add broth and Pressure Cook."
+                ]
+            },
+            {
+                "id": "fried-chicken",
+                "title": "Fried Chicken",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Marinade: 1 cup buttermilk, 1 tsp salt/garlic/onion, 1/2 tsp pepper/paprika, 1/4 tsp cayenne",
+                    "For Cooking: 2 eggs, Seasoned flour, Chicken pieces"
+                ],
+                "instructions": [
+                    "Mix marinade, vacuum seal with chicken. Rest in fridge 2-24 hours.",
+                    "Sous Vide chicken in the bag at 150°F for 2 hours.",
+                    "Remove from bag, pat dry.",
+                    "Dredge in egg, then seasoned flour.",
+                    "Fry until golden brown."
+                ]
+            },
+            {
+                "id": "smoked-ribs",
+                "title": "Smoked Ribs",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Racks of ribs",
+                    "Seasoning",
+                    "Apple juice/cider (for spritz)",
+                    "BBQ sauce"
+                ],
+                "instructions": [
+                    "Season ribs.",
+                    "Smoke at 250°F for 4-5 hours (until 195°F internal), spritzing occasionally.",
+                    "Squirt BBQ sauce on foil, spritz with juice.",
+                    "Lay ribs meat-side down on sauce, wrap foil.",
+                    "Cook for 2 more hours."
+                ]
+            },
+            {
+                "id": "smoked-chicken",
+                "title": "Smoked Whole Chicken",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Chicken",
+                    "Seasoning"
+                ],
+                "instructions": [
+                    "Smoke at 280°F until internal temp = 165°F."
+                ]
+            },
+            {
+                "id": "smoked-meatloaf",
+                "title": "Smoked Meatloaf",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Beef/pork",
+                    "Egg",
+                    "Bread crumbs",
+                    "Salt/seasoning"
+                ],
+                "instructions": [
+                    "Form loaf.",
+                    "Smoke at 250°F until internal temp is 155°F."
+                ]
+            },
+            {
+                "id": "dumplings",
+                "title": "Dumplings",
+                "category": "Main Courses",
+                "ingredients": [
+                    "Dough: 3 cups flour, 1 cup boiling water, 1 tsp salt",
+                    "Filling: 1 lb ground meat, Garlic/Green onion/Ginger, 4 tbsp soy sauce, 1 tsp sesame oil"
+                ],
+                "instructions": [
+                    "Combine flour/water/salt, mix, rest for 30 minutes.",
+                    "Roll in pasta maker to setting 2.",
+                    "Mix meat/wets for filling. Freeze to firm up.",
+                    "Cut 3” circles in the dough and fill.",
+                    "Steam (Combi): 212°F @ 100% humidity for 12 minutes."
+                ]
+            },
+            {
+                "id": "rice-pilaf",
+                "title": "Rice Pilaf",
+                "category": "Sides & Appetizers",
+                "ingredients": [
+                    "Onions, peppers, other flavors",
+                    "2 Tbsp butter",
+                    "Rice (1 part)",
+                    "Water/Broth (1.5 parts)",
+                    "Boullion"
+                ],
+                "instructions": [
+                    "In an oven-safe pot, sauté aromatics in butter.",
+                    "Add rice to pan and cook until \"nutty\".",
+                    "Add water/boullion, salt, bring to boil.",
+                    "Cover and put in oven at 350°F for 15 minutes.",
+                    "Let stand for 15 minutes (covered)."
+                ]
+            },
+            {
+                "id": "nachos",
+                "title": "Nachos",
+                "category": "Sides & Appetizers",
+                "ingredients": [
+                    "Nachos",
+                    "Extra Stuff (cheese, beans, meat)"
+                ],
+                "instructions": [
+                    "Assemble.",
+                    "Broil 6 min at 400°F."
+                ]
+            },
+            {
+                "id": "mashed-potatoes",
+                "title": "Mashed Potatoes (Pressure Cooker)",
+                "category": "Sides & Appetizers",
+                "ingredients": [
+                    "Potatoes"
+                ],
+                "instructions": [
+                    "Pressure Cook High for 9 minutes."
+                ]
+            },
+            {
+                "id": "fries",
+                "title": "Fries (Air Fryer)",
+                "category": "Sides & Appetizers",
+                "ingredients": [
+                    "Fresh potatoes",
+                    "Oil",
+                    "Salt/seasoning"
+                ],
+                "instructions": [
+                    "Cut potatoes (small slice).",
+                    "Coat in oil and seasoning.",
+                    "Cook 12-15 min in Air Fryer."
+                ]
+            },
+            {
+                "id": "chips",
+                "title": "Chips (Air Fryer)",
+                "category": "Sides & Appetizers",
+                "ingredients": [
+                    "Fresh potatoes",
+                    "Oil",
+                    "Salt/seasoning"
+                ],
+                "instructions": [
+                    "Slice potatoes (#3 on Mandolin).",
+                    "Coat in oil and seasoning.",
+                    "Cook 10 min in Air Fryer."
+                ]
+            },
+            {
+                "id": "potato-salad-sv",
+                "title": "Potato Salad (Sous Vide)",
+                "category": "Sides & Appetizers",
+                "ingredients": [
+                    "Potatoes, cubed",
+                    "Eggs",
+                    "Mayo"
+                ],
+                "instructions": [
+                    "Sous Vide eggs: 167°F for 45 minutes.",
+                    "Sous Vide potatoes (cubed): 183°F for 1 hour.",
+                    "Combine with mayo and other ingredients."
+                ]
+            },
+            {
+                "id": "black-beans",
+                "title": "Black Beans",
+                "category": "Sides & Appetizers",
+                "ingredients": [
+                    "Black beans",
+                    "Aromatics",
+                    "Broth"
+                ],
+                "instructions": [
+                    "Slow cook for a few hours and/or pressure cook for 20 minutes."
+                ]
+            },
+            {
+                "id": "tzatziki",
+                "title": "Tzatziki",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "16 oz yogurt",
+                    "1 cucumber (peeled/diced)",
+                    "4 garlic cloves",
+                    "1 Tbsp olive oil",
+                    "2 tsp red vinegar",
+                    "6 mint leaves"
+                ],
+                "instructions": [
+                    "Combine all ingredients."
+                ]
+            },
+            {
+                "id": "cheeze-sauce",
+                "title": "Cheeze Sauce (Sous Vide)",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "8 oz Cheddar",
+                    "8 oz Milk",
+                    "11g Sodium Citrate",
+                    "1.5g salt"
+                ],
+                "instructions": [
+                    "Combine in a bag.",
+                    "Sous Vide 30 min at 165°F."
+                ]
+            },
+            {
+                "id": "mayo",
+                "title": "Mayo",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "1 egg",
+                    "1 tsp salt",
+                    "1/2 tsp dry mustard",
+                    "2 tsp lemon juice",
+                    "1 cup oil"
+                ],
+                "instructions": [
+                    "Combine all ingredients except oil in a food processor.",
+                    "While running, slowly drizzle in oil until emulsified."
+                ]
+            },
+            {
+                "id": "quick-pickles",
+                "title": "Quick Pickles",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "20 g pickle salt",
+                    "3/4 cup vinegar",
+                    "1.5 cup water",
+                    "2 cucumbers"
+                ],
+                "instructions": [
+                    "Slice cucumbers (Mandolin on 6).",
+                    "Combine in 3 1/2-pint Mason Jars.",
+                    "Boil brine (salt, vinegar, water) and pour over.",
+                    "Split brine into jars."
+                ]
+            },
+            {
+                "id": "chimichurri",
+                "title": "Chimichurri",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "Parsley",
+                    "Cilantro",
+                    "Green onions",
+                    "Garlic",
+                    "Shallots",
+                    "Roasted tomatoes",
+                    "Red hot chili pepper",
+                    "Thyme",
+                    "Salt",
+                    "Pepper",
+                    "Red wine vinegar",
+                    "Avocado oil"
+                ],
+                "instructions": [
+                    "Finely chop and combine."
+                ]
+            },
+            {
+                "id": "chimichurri-alt",
+                "title": "Chimichurri (Alternative)",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "Parsley",
+                    "Cilantro",
+                    "Green onion",
+                    "Garlic",
+                    "Salt",
+                    "Avocado oil",
+                    "Dried tomatoes"
+                ],
+                "instructions": [
+                    "Blend herbs until small.",
+                    "Add garlic, salt, tomatoes, and oil and re-blend."
+                ]
+            },
+            {
+                "id": "simple-syrup",
+                "title": "Simple Syrup",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "1 part sugar",
+                    "1 part water"
+                ],
+                "instructions": [
+                    "Heat until sugar is dissolved."
+                ]
+            },
+            {
+                "id": "brine",
+                "title": "Brine",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "2 qts water",
+                    "1/2 cup salt",
+                    "1/2 cup white sugar",
+                    "1/4 cup soy sauce"
+                ],
+                "instructions": [
+                    "Dissolve solids in water."
+                ]
+            },
+            {
+                "id": "pickle-brine",
+                "title": "Pickle Brine",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "2 cup water",
+                    "1 cup vinegar",
+                    "1 Tbsp pickle salt"
+                ],
+                "instructions": [
+                    "Boil ingredients.",
+                    "Pour over cucumbers in a jar.",
+                    "Wait 1 week."
+                ]
+            },
+            {
+                "id": "deep-fry-batter",
+                "title": "Deep Fried Batter",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "1 1/4 cups flour",
+                    "2 tsp baking powder",
+                    "1/4 tsp salt",
+                    "3/4 cup milk",
+                    "1 egg"
+                ],
+                "instructions": [
+                    "Mix.",
+                    "Coat food and put in fryer."
+                ]
+            },
+            {
+                "id": "maple-glaze",
+                "title": "Maple Glaze",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "1 1/2 cup confectioners' sugar",
+                    "3 Tbsp milk",
+                    "3 Tbsp maple syrup"
+                ],
+                "instructions": [
+                    "Mix and let sit before topping cookies."
+                ]
+            },
+            {
+                "id": "bacon-cured",
+                "title": "Bacon (Cured)",
+                "category": "Sauces, Condiments & Brines",
+                "ingredients": [
+                    "Pork Belly",
+                    "6 Tbsp Kosher Salt",
+                    "3 tsp black pepper",
+                    "1 cup brown sugar",
+                    "3 tsp curing salt"
+                ],
+                "instructions": [
+                    "Rub pork belly with cure mixture.",
+                    "Cure in fridge for 8-10 days.",
+                    "Rinse and smoke at low temp (~150°F) until cooked."
+                ]
+            },
+            {
+                "id": "honey-almonds",
+                "title": "Honey Roasted Almonds",
+                "category": "Desserts & Snacks",
+                "ingredients": [
+                    "2 cups almonds",
+                    "1/4 cup honey",
+                    "2 Tbsp butter",
+                    "1 Cup sugar"
+                ],
+                "instructions": [
+                    "Spread almonds on a baking sheet.",
+                    "Toast at 350°F for 12-20 minutes, stirring occasionally.",
+                    "Heat honey/butter until it boils, simmer 2-3 min.",
+                    "Add almonds to honey, stir to coat.",
+                    "Spread on a baking sheet (sprayed with PAM).",
+                    "Toss in sugar while still warm, then cool."
+                ]
+            },
+            {
+                "id": "choco-chip-cookies",
+                "title": "Chocolate Chip Cookies",
+                "category": "Desserts & Snacks",
+                "ingredients": [
+                    "1 cup butter",
+                    "1/2 cup white sugar",
+                    "1 cup brown sugar",
+                    "1 tsp vanilla",
+                    "2 eggs",
+                    "2 1/4 cup flour",
+                    "1 tsp baking soda",
+                    "1 tsp salt",
+                    "2 cups chocolate chips"
+                ],
+                "instructions": [
+                    "Cream butter and sugars. Add vanilla and eggs.",
+                    "Combine dry ingredients and mix in.",
+                    "Stir in chocolate chips.",
+                    "Bake 8-10 min at 350°F."
+                ]
+            },
+            {
+                "id": "bacon-maple-cookies",
+                "title": "Bacon Maple Cookies",
+                "category": "Desserts & Snacks",
+                "ingredients": [
+                    "1/2 cup bacon/butter (fat)",
+                    "1/2 cup white sugar",
+                    "1/2 cup brown sugar",
+                    "1 cup flour",
+                    "1 cup oats",
+                    "1/2 tsp baking soda",
+                    "1/2 tsp salt",
+                    "1 tsp cinnamon",
+                    "1 egg",
+                    "1/2 tsp vanilla"
+                ],
+                "instructions": [
+                    "Toast oats.",
+                    "Mix all ingredients.",
+                    "Bake (Combi): 325°F @ 25% humidity for 12 minutes.",
+                    "Cover with Maple Glaze on a cooling rack."
+                ]
+            },
+            {
+                "id": "margarita",
+                "title": "Milk-Clarified Margarita",
+                "category": "Beverages",
+                "ingredients": [
+                    "1 cup tequila",
+                    "1/2 cup orange liqueur",
+                    "1/2 cup simple syrup",
+                    "2 cups lime juice",
+                    "1 cup milk"
+                ],
+                "instructions": [
+                    "Mix margarita ingredients (all but milk).",
+                    "Pour the margarita mix over the milk.",
+                    "Let sit in fridge for 1+ hour (it will curdle).",
+                    "Filter the curdled milk out with a cheesecloth or coffee filter."
+                ]
+            },
+            {
+                "id": "turkish-coffee",
+                "title": "Turkish Coffee",
+                "category": "Beverages",
+                "ingredients": [
+                    "35 g grounds",
+                    "400g water"
+                ],
+                "instructions": [
+                    "Mix in a cezve/pot.",
+                    "Heat until it foams (do not boil over).",
+                    "Wait 2 minutes.",
+                    "Pour."
+                ]
+            },
+            {
+                "id": "sodium-citrate",
+                "title": "Sodium Citrate (DIY)",
+                "category": "Techniques & Base Components",
+                "ingredients": [
+                    "8g citric acid",
+                    "9.5g baking soda",
+                    "Water"
+                ],
+                "instructions": [
+                    "Dissolve both in a small amount of water. It will fizz. The resulting liquid is a sodium citrate solution."
+                ]
+            },
+            {
+                "id": "reheat-ip",
+                "title": "Reheat in Instant Pot",
+                "category": "Techniques & Base Components",
+                "ingredients": [
+                    "Leftovers",
+                    "Water"
+                ],
+                "instructions": [
+                    "Place food in an oven-safe container on the trivet.",
+                    "Add a little water to the bottom of the pot.",
+                    "Steam for 5-10 minutes."
+                ]
+            }
+        ];
+
+        // 2. State
+        let currentFilter = 'all';
+        let currentRecipeId = null;
+        let currentSearch = '';
+
+        // 3. Elements
+        const recipeContainer = document.getElementById('recipe-container');
+        const searchBar = document.getElementById('search-bar');
+        const contentTitle = document.getElementById('content-title');
+        const contentIntro = document.getElementById('content-intro');
+        const recipeCount = document.getElementById('recipe-count');
+        const noResults = document.getElementById('no-results');
+        const categoryList = document.getElementById('category-list');
+        
+        const categoryIntros = {
+            'all': 'Welcome to your interactive cookbook! This application allows you to browse, search, and filter all the recipes from your collection. Select a category from the sidebar or use the search bar to find a specific recipe.',
+            'Breakfast': 'Start your day right. This section includes recipes for waffles, pancakes, crepes, and more.',
+            'Breads, Doughs & Tortillas': 'From pizza and pasta to tortillas and pierogi, find all your foundational dough recipes here.',
+            'Sourdough': 'Your dedicated section for all things sourdough, including artisan bread, crackers, and starter-based recipes.',
+            'Main Courses': 'The heart of the meal. This category features everything from quick weeknight air-fryer recipes to low-and-slow smoked brisket.',
+            'Sides & Appetizers': 'Complete your meal with these essential sides, including potatoes, rice pilaf, and classic appetizers.',
+            'Sauces, Condiments & Brines': 'Elevate your dishes with homemade sauces, dressings, brines, and pickles.',
+            'Desserts & Snacks': 'Treat yourself. Find recipes for cookies, roasted nuts, and other sweet snacks.',
+            'Beverages': 'Recipes for cocktails and coffee to round out your collection.',
+            'Techniques & Base Components': 'The building blocks. Learn how to make components like sodium citrate or reference core techniques like pressure-cooker reheating.'
+        };
+
+        // 4. Render Function
+        function renderRecipes() {
+            recipeContainer.innerHTML = '';
+            let count = 0;
+            let filteredRecipes = [];
+
+            if (currentRecipeId) {
+                filteredRecipes = allRecipes.filter(recipe => recipe.id === currentRecipeId);
+                const recipe = filteredRecipes[0];
+                if (recipe) {
+                    contentTitle.textContent = recipe.title;
+                    contentIntro.textContent = `Showing details for ${recipe.title}.`;
+                }
+            } else if (currentSearch) {
+                filteredRecipes = allRecipes.filter(recipe => 
+                    recipe.title.toLowerCase().includes(currentSearch) ||
+                    recipe.ingredients.join(' ').toLowerCase().includes(currentSearch)
+                );
+                contentTitle.textContent = `Search Results for "${currentSearch}"`;
+                contentIntro.textContent = `Found ${filteredRecipes.length} recipes matching your search.`;
+            } else {
+                filteredRecipes = (currentFilter === 'all') 
+                    ? allRecipes 
+                    : allRecipes.filter(recipe => recipe.category === currentFilter);
+                
+                contentTitle.textContent = currentFilter === 'all' ? 'All Recipes' : currentFilter;
+                contentIntro.textContent = categoryIntros[currentFilter] || 'Browse the recipes in this category.';
+            }
+            
+            count = filteredRecipes.length;
+
+            if (count === 0) {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            filteredRecipes.forEach(recipe => {
+                const card = `
+                    <div class="bg-white shadow-lg rounded-xl overflow-hidden flex flex-col transform transition-all duration-300 hover:shadow-2xl">
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold text-teal-700 mb-3">${recipe.title}</h3>
+                            <span class="inline-block bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded-full mb-4">${recipe.category}</span>
+                            
+                            <h4 class="text-lg font-semibold text-stone-700 mb-2">Ingredients</h4>
+                            <ul class="list-disc list-inside text-stone-600 space-y-1 mb-4 text-sm">
+                                ${recipe.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+                            </ul>
+                            
+                            <h4 class="text-lg font-semibold text-stone-700 mb-2">Instructions</h4>
+                            <div class="text-stone-600 space-y-2 text-sm">
+                                ${recipe.instructions.map(inst => `<p>${inst}</p>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                recipeContainer.innerHTML += card;
+            });
+            
+            recipeCount.textContent = `${count} ${count === 1 ? 'Recipe' : 'Recipes'}`;
+        }
+
+        // 5. Event Handlers
+        function handleFilter(category, element) {
+            currentFilter = category;
+            currentRecipeId = null;
+            currentSearch = '';
+            searchBar.value = '';
+            
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.recipe-link').forEach(link => link.classList.remove('active'));
+            if(element) {
+                element.classList.add('active');
+            }
+            
+            document.querySelectorAll('.recipe-submenu').forEach(submenu => {
+                submenu.classList.add('hidden');
+            });
+            
+            if(category !== 'all' && element && element.nextElementSibling) {
+                element.nextElementSibling.classList.remove('hidden');
+            }
+            
+            renderRecipes();
+        }
+
+        function handleRecipeClick(recipeId, element) {
+            currentRecipeId = recipeId;
+            currentFilter = null;
+            currentSearch = '';
+            searchBar.value = '';
+
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.recipe-link').forEach(link => link.classList.remove('active'));
+            
+            element.classList.add('active');
+            
+            let parentButton = element.closest('li').previousElementSibling;
+            if (parentButton && parentButton.matches('.nav-button')) {
+                 parentButton.classList.add('active');
+            } else if (element.closest('ul')?.previousElementSibling) {
+                element.closest('ul').previousElementSibling.classList.add('active');
+            }
+
+            renderRecipes();
+        }
+
+        function handleSearch() {
+            currentSearch = searchBar.value.toLowerCase();
+            currentFilter = 'all';
+            currentRecipeId = null;
+
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.recipe-link').forEach(link => link.classList.remove('active'));
+            document.querySelectorAll('.recipe-submenu').forEach(submenu => submenu.classList.add('hidden'));
+
+            renderRecipes();
+        }
+        
+        function populateSubmenus() {
+            const recipesByCategory = allRecipes.reduce((acc, recipe) => {
+                if (!acc[recipe.category]) {
+                    acc[recipe.category] = [];
+                }
+                acc[recipe.category].push(recipe);
+                return acc;
+            }, {});
+
+            document.querySelectorAll('.nav-button[data-category]').forEach(button => {
+                const category = button.dataset.category;
+                const submenu = button.nextElementSibling;
+                if (recipesByCategory[category]) {
+                    submenu.innerHTML = '';
+                    recipesByCategory[category].forEach(recipe => {
+                        const li = document.createElement('li');
+                        li.className = 'recipe-link px-4 py-1 rounded-lg hover:bg-stone-100 cursor-pointer text-sm text-stone-700';
+                        li.textContent = recipe.title;
+                        li.onclick = () => handleRecipeClick(recipe.id, li);
+                        submenu.appendChild(li);
+                    });
+                }
+            });
+        }
+
+        // 6. Init
+        document.addEventListener('DOMContentLoaded', () => {
+            populateSubmenus();
+            searchBar.addEventListener('keyup', handleSearch);
+            handleFilter('all', categoryList.querySelector('.nav-button'));
+        });
+    </script>
+</body>
+</html>
+
