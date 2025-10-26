@@ -127,14 +127,26 @@ function renderRecipes() {
 
 // 4. Event Handlers
 
-// --- NEW Mobile View Toggle Functions ---
+// --- NEW: Debounce Function (CHANGE 1 of 3) ---
+// This prevents the search from running on every single keystroke.
+function debounce(func, delay = 300) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+}
+// --- End of New Function ---
+
+
+// --- Mobile View Toggle Functions ---
 function showMainContentOnMobile() {
     if (window.innerWidth < 768) { // md breakpoint
         sidebar.classList.add('hidden');
         mainContent.classList.remove('hidden');
-        
-        // Scroll to top of main content
-        mainContent.scrollIntoView({ behavior: 'auto' }); // 'auto' is more immediate than 'smooth'
+        mainContent.scrollIntoView({ behavior: 'auto' });
     }
 }
 
@@ -142,8 +154,6 @@ function showSidebarOnMobile() {
     if (window.innerWidth < 768) { // md breakpoint
         sidebar.classList.remove('hidden');
         mainContent.classList.add('hidden');
-        
-        // Scroll to top of sidebar
         sidebar.scrollIntoView({ behavior: 'auto' });
     }
 }
@@ -173,7 +183,6 @@ function handleFilter(category, element) {
     }
     
     renderRecipes();
-    // REMOVED: showMainContentOnMobile(); -- This is now handled by the click event
 }
 
 function handleSubCategoryFilter(category, subCategory, element) {
@@ -202,7 +211,6 @@ function handleSubCategoryFilter(category, subCategory, element) {
     }
 
     renderRecipes();
-    // REMOVED: showMainContentOnMobile(); -- This is now handled by the click event
 }
 
 function handleRecipeClick(recipeId, element) {
@@ -225,7 +233,6 @@ function handleRecipeClick(recipeId, element) {
     }
 
     renderRecipes();
-    // REMOVED: showMainContentOnMobile(); -- This is now handled by the click event
 }
 
 function handleSearch() {
@@ -240,11 +247,15 @@ function handleSearch() {
     showAllBtn.classList.add('active');
 
     renderRecipes();
-    // REMOVED: showMainContentOnMobile(); -- This is now handled by the keyup event
+
+    // UPDATED: (CHANGE 2 of 3)
+    // The search function itself should toggle the mobile view
+    showMainContentOnMobile();
 }
 
 // 5. Initialization
 function generateCategories() {
+    // ... (This function is unchanged, all click handlers are correct) ...
     const uniqueRecipes = {};
     allRecipes.forEach(recipe => {
         uniqueRecipes[recipe.id] = recipe;
@@ -289,7 +300,6 @@ function generateCategories() {
             <span>${index + 1}. ${category}</span>
             <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
         `;
-        // UPDATED: Added showMainContentOnMobile() to the click event
         button.onclick = () => {
             handleFilter(category, button);
             showMainContentOnMobile();
@@ -317,7 +327,6 @@ function generateCategories() {
                     <span>${subCat}</span>
                     <span class="chevron-sub transform transition-transform duration-150 text-stone-400">&gt;</span>
                 `;
-                // UPDATED: Added showMainContentOnMobile() to the click event
                 subButton.onclick = (e) => {
                     e.stopPropagation(); 
                     handleSubCategoryFilter(category, subCat, subButton);
@@ -331,7 +340,6 @@ function generateCategories() {
                     const recipeLi = document.createElement('li');
                     recipeLi.className = 'recipe-link px-4 py-1';
                     recipeLi.textContent = recipe.title;
-                    // UPDATED: Added showMainContentOnMobile() to the click event
                     recipeLi.onclick = (e) => {
                         e.stopPropagation();
                         handleRecipeClick(recipe.id, recipeLi);
@@ -350,7 +358,6 @@ function generateCategories() {
                 const recipeLi = document.createElement('li');
                 recipeLi.className = 'recipe-link px-4 py-1';
                 recipeLi.textContent = recipe.title;
-                // UPDATED: Added showMainContentOnMobile() to the click event
                 recipeLi.onclick = (e) => {
                     e.stopPropagation();
                     handleRecipeClick(recipe.id, recipeLi);
@@ -369,13 +376,11 @@ function generateCategories() {
 // 6. Init
 generateCategories();
 
-// UPDATED: Added showMainContentOnMobile() to the keyup event
-searchBar.addEventListener('keyup', () => {
-    handleSearch();
-    showMainContentOnMobile();
-});
+// UPDATED: (CHANGE 3 of 3)
+// Use the debounce function for the search input
+searchBar.addEventListener('keyup', debounce(handleSearch, 300));
 
-// UPDATED: "Show All" button now also toggles the view
+// "Show All" button now also toggles the view
 showAllBtn.onclick = () => {
     handleFilter('all', showAllBtn);
     showMainContentOnMobile();
@@ -386,7 +391,6 @@ toggleSidebarBtn.addEventListener('click', showSidebarOnMobile);
 
 // On initial page load, run the filter once to populate the 
 // "All Recipes" content in the (hidden) main area.
-// This call will NOT toggle the view.
 handleFilter('all', showAllBtn);
 
 // Explicitly set the initial mobile state
