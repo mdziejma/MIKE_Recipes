@@ -1,3 +1,15 @@
+// NEW: Combine all recipe arrays from separate files
+const allRecipes = [
+    ...recipesBreakfast,
+    ...recipesBreads,
+    ...recipesSourdough,
+    ...recipesMains,
+    ...recipesSides,
+    ...recipesSauces,
+    ...recipesDesserts,
+    ...recipesBeverages,
+    ...recipesTechniques
+];
 // 1. State
 let currentFilter = 'all';
 let currentSubCategory = null;
