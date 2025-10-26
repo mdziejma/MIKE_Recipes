@@ -27,7 +27,7 @@ const noResults = document.getElementById('no-results');
 const categoryList = document.getElementById('category-list');
 const showAllBtn = document.getElementById('show-all-btn');
 
-// NEW: Elements for mobile toggling
+// Elements for mobile toggling
 const sidebar = document.getElementById('sidebar');
 const mainContent = document.getElementById('main-content');
 const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
@@ -134,7 +134,7 @@ function showMainContentOnMobile() {
         mainContent.classList.remove('hidden');
         
         // Scroll to top of main content
-        mainContent.scrollIntoView({ behavior: 'smooth' });
+        mainContent.scrollIntoView({ behavior: 'auto' }); // 'auto' is more immediate than 'smooth'
     }
 }
 
@@ -144,7 +144,7 @@ function showSidebarOnMobile() {
         mainContent.classList.add('hidden');
         
         // Scroll to top of sidebar
-        sidebar.scrollIntoView({ behavior: 'smooth' });
+        sidebar.scrollIntoView({ behavior: 'auto' });
     }
 }
 // --- End of New Functions ---
@@ -173,7 +173,7 @@ function handleFilter(category, element) {
     }
     
     renderRecipes();
-    showMainContentOnMobile(); // NEW: Toggle view
+    // REMOVED: showMainContentOnMobile(); -- This is now handled by the click event
 }
 
 function handleSubCategoryFilter(category, subCategory, element) {
@@ -202,7 +202,7 @@ function handleSubCategoryFilter(category, subCategory, element) {
     }
 
     renderRecipes();
-    showMainContentOnMobile(); // NEW: Toggle view
+    // REMOVED: showMainContentOnMobile(); -- This is now handled by the click event
 }
 
 function handleRecipeClick(recipeId, element) {
@@ -224,9 +224,8 @@ function handleRecipeClick(recipeId, element) {
         parentCatMenu.previousElementSibling.classList.add('active');
     }
 
-
     renderRecipes();
-    showMainContentOnMobile(); // NEW: Toggle view
+    // REMOVED: showMainContentOnMobile(); -- This is now handled by the click event
 }
 
 function handleSearch() {
@@ -241,14 +240,12 @@ function handleSearch() {
     showAllBtn.classList.add('active');
 
     renderRecipes();
-    showMainContentOnMobile(); // NEW: Toggle view
+    // REMOVED: showMainContentOnMobile(); -- This is now handled by the keyup event
 }
 
 // 5. Initialization
 function generateCategories() {
-    // ... (This function is unchanged) ...
     const uniqueRecipes = {};
-    // allRecipes is globally available
     allRecipes.forEach(recipe => {
         uniqueRecipes[recipe.id] = recipe;
     });
@@ -292,7 +289,11 @@ function generateCategories() {
             <span>${index + 1}. ${category}</span>
             <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
         `;
-        button.onclick = () => handleFilter(category, button);
+        // UPDATED: Added showMainContentOnMobile() to the click event
+        button.onclick = () => {
+            handleFilter(category, button);
+            showMainContentOnMobile();
+        };
         
         const submenu = document.createElement('ul');
         submenu.className = 'recipe-submenu hidden ml-4 space-y-1 mt-1';
@@ -316,9 +317,11 @@ function generateCategories() {
                     <span>${subCat}</span>
                     <span class="chevron-sub transform transition-transform duration-150 text-stone-400">&gt;</span>
                 `;
+                // UPDATED: Added showMainContentOnMobile() to the click event
                 subButton.onclick = (e) => {
                     e.stopPropagation(); 
                     handleSubCategoryFilter(category, subCat, subButton);
+                    showMainContentOnMobile();
                 };
                 
                 const recipeListUl = document.createElement('ul');
@@ -328,9 +331,11 @@ function generateCategories() {
                     const recipeLi = document.createElement('li');
                     recipeLi.className = 'recipe-link px-4 py-1';
                     recipeLi.textContent = recipe.title;
+                    // UPDATED: Added showMainContentOnMobile() to the click event
                     recipeLi.onclick = (e) => {
                         e.stopPropagation();
                         handleRecipeClick(recipe.id, recipeLi);
+                        showMainContentOnMobile();
                     };
                     recipeListUl.appendChild(recipeLi);
                 });
@@ -345,9 +350,11 @@ function generateCategories() {
                 const recipeLi = document.createElement('li');
                 recipeLi.className = 'recipe-link px-4 py-1';
                 recipeLi.textContent = recipe.title;
+                // UPDATED: Added showMainContentOnMobile() to the click event
                 recipeLi.onclick = (e) => {
                     e.stopPropagation();
                     handleRecipeClick(recipe.id, recipeLi);
+                    showMainContentOnMobile();
                 };
                 submenu.appendChild(recipeLi);
             });
@@ -359,22 +366,35 @@ function generateCategories() {
     });
 }
 
-// ... (all code from above is correct until section 6) ...
-
 // 6. Init
 generateCategories();
-searchBar.addEventListener('keyup', handleSearch);
 
-// MODIFIED: Use a new function for the click
+// UPDATED: Added showMainContentOnMobile() to the keyup event
+searchBar.addEventListener('keyup', () => {
+    handleSearch();
+    showMainContentOnMobile();
+});
+
+// UPDATED: "Show All" button now also toggles the view
 showAllBtn.onclick = () => {
     handleFilter('all', showAllBtn);
-    showMainContentOnMobile(); // Manually trigger view change when clicked
+    showMainContentOnMobile();
 };
 
-// NEW: Event listener for mobile toggle button
+// This handles the "Back to Categories" button
 toggleSidebarBtn.addEventListener('click', showSidebarOnMobile);
 
-// MODIFIED: Run the initial filter *without* toggling the view
-// This populates the "All Recipes" content in the hidden main area
-// but keeps the sidebar visible on mobile on first load.
+// On initial page load, run the filter once to populate the 
+// "All Recipes" content in the (hidden) main area.
+// This call will NOT toggle the view.
 handleFilter('all', showAllBtn);
+
+// Explicitly set the initial mobile state
+if (window.innerWidth < 768) {
+    mainContent.classList.add('hidden');
+    sidebar.classList.remove('hidden');
+} else {
+    // On desktop, make sure both are visible
+    mainContent.classList.remove('hidden');
+    sidebar.classList.remove('hidden');
+}
