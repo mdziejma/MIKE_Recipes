@@ -10,6 +10,7 @@ const allRecipes = [
     ...recipesBeverages,
     ...recipesTechniques
 ];
+
 // 1. State
 let currentFilter = 'all';
 let currentSubCategory = null;
@@ -169,6 +170,14 @@ function handleSubCategoryFilter(category, subCategory, element) {
     }
 
     renderRecipes();
+
+    // NEW: Auto-scroll on mobile
+    if (window.innerWidth < 768) { // 768px is Tailwind's default 'md' breakpoint
+        const contentTitle = document.getElementById('content-title');
+        if (contentTitle) {
+            contentTitle.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
 }
 
 function handleRecipeClick(recipeId, element) {
@@ -192,6 +201,14 @@ function handleRecipeClick(recipeId, element) {
 
 
     renderRecipes();
+
+    // NEW: Auto-scroll on mobile
+    if (window.innerWidth < 768) { // 768px is Tailwind's default 'md' breakpoint
+        const contentTitle = document.getElementById('content-title');
+        if (contentTitle) {
+            contentTitle.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
 }
 
 function handleSearch() {
@@ -206,6 +223,14 @@ function handleSearch() {
     showAllBtn.classList.add('active');
 
     renderRecipes();
+
+    // NEW: Auto-scroll on mobile
+    if (window.innerWidth < 768) { // 768px is Tailwind's default 'md' breakpoint
+        const contentTitle = document.getElementById('content-title');
+        if (contentTitle) {
+            contentTitle.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
 }
 
 // 5. Initialization
@@ -311,7 +336,7 @@ function generateCategories() {
                 recipeLi.onclick = (e) => {
                     e.stopPropagation();
                     handleRecipeClick(recipe.id, recipeLi);
-                }; // <-- *** THE FIX WAS ADDING THE } ON THIS LINE ***
+                };
                 submenu.appendChild(recipeLi);
             });
         }
