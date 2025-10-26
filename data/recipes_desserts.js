@@ -1,4 +1,4 @@
-const recipesDesserts = [
+var recipesDesserts = [
     {
         "id": "honey-almonds",
         "title": "Honey Roasted Almonds",

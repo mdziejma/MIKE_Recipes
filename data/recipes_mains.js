@@ -1,4 +1,4 @@
-const recipesMains = [
+var recipesMains = [
     {
         "id": "meatballs",
         "title": "Meatballs",

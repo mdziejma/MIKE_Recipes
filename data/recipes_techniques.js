@@ -1,4 +1,4 @@
-const recipesTechniques = [
+var recipesTechniques = [
     {
         "id": "sodium-citrate",
         "title": "Sodium Citrate (DIY)",

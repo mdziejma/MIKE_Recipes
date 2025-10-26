@@ -1,4 +1,4 @@
-const recipesSides = [
+var recipesSides = [
     {
         "id": "rice-pilaf",
         "title": "Rice Pilaf",

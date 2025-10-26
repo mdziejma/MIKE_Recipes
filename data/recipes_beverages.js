@@ -1,4 +1,4 @@
-const recipesBeverages = [
+var recipesBeverages = [
     {
         "id": "margarita",
         "title": "Milk-Clarified Margarita",

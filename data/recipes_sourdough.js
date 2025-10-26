@@ -1,4 +1,4 @@
-const recipesSourdough = [
+var recipesSourdough = [
     {
         "id": "sourdough-bread",
         "title": "Sourdough Bread",
