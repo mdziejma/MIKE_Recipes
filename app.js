@@ -237,7 +237,7 @@ function generateCategories() {
         showMainContentOnMobile();
     };
 
-    // CHANGED: Use currentBookRecipes
+    // Use currentBookRecipes
     const uniqueRecipes = {};
     currentBookRecipes.forEach(recipe => {
         uniqueRecipes[recipe.id] = recipe;
@@ -252,6 +252,7 @@ function generateCategories() {
         return acc;
     }, {});
 
+    // Define a preferred category order
     const categoryOrder = [
         'Breakfast',
         'Breads, Doughs & Tortillas',
@@ -261,7 +262,26 @@ function generateCategories() {
         'Sauces, Condiments & Brines',
         'Desserts & Snacks',
         'Beverages',
-        'Techniques & Base Components'
+        'Techniques & Base Components',
+        // --- GAUDET Categories ---
+        'Basics',
+        'Drinks',
+        'Appetizers',
+        'Salads',
+        'Soups & Stews',
+        'Main Dishes - Veg & Egg',
+        'Main Dishes - Pasta',
+        'Main Dishes - Seafood',
+        'Main Dishes - Pork',
+        'Main Dishes - Beef',
+        'Main Dishes - Chicken',
+        'Side Dishes',
+        'Breads',
+        'Cookies & Brownies',
+        'Pies',
+        'Cakes & Frostings',
+        'Other Desserts',
+        'Fun Stuff'
     ];
     
     Object.keys(recipesByCategory).forEach(category => {
@@ -270,18 +290,29 @@ function generateCategories() {
         }
     });
 
-    categoryOrder.forEach((category, index) => {
-        // ... (rest of this function is unchanged) ...
-        if (!recipesByCategory[category]) return;
+    // --- CHANGE IS HERE ---
+    // Initialize a counter for *displayed* categories
+    let displayIndex = 0; 
+
+    categoryOrder.forEach((category) => { // Removed 'index' from here
+        if (!recipesByCategory[category]) return; // Skip if this category isn't in the current book
         
+        displayIndex++; // Increment the *actual* display count
+        // --- END CHANGE ---
+
         const li = document.createElement('li');
         
         const button = document.createElement('button');
         button.className = 'nav-button flex justify-between items-center w-full text-left px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-150';
+        
+        // --- CHANGE IS HERE ---
+        // Use the new displayIndex instead of (index + 1)
         button.innerHTML = `
-            <span>${index + 1}. ${category}</span>
+            <span>${displayIndex}. ${category}</span>
             <span class="chevron transform transition-transform duration-150 text-stone-400">&gt;</span>
         `;
+        // --- END CHANGE ---
+
         button.onclick = () => {
             handleFilter(category, button);
             showMainContentOnMobile();
@@ -290,7 +321,7 @@ function generateCategories() {
         const submenu = document.createElement('ul');
         submenu.className = 'recipe-submenu hidden ml-4 space-y-1 mt-1';
         
-        if (category === 'Main Courses') {
+        if (recipesByCategory[category].some(r => r.subCategory)) {
             const recipesBySubCategory = recipesByCategory[category].reduce((acc, recipe) => {
                 const subCat = recipe.subCategory || 'Other';
                 if (!acc[subCat]) {
@@ -320,7 +351,7 @@ function generateCategories() {
                 
                 recipesBySubCategory[subCat].sort((a,b) => a.title.localeCompare(b.title)).forEach(recipe => {
                     const recipeLi = document.createElement('li');
-                    recipeLi.className = 'recipe-link px-4 py-1';
+                    recipeLi.className = 'recipe-link';
                     recipeLi.textContent = recipe.title;
                     recipeLi.onclick = (e) => {
                         e.stopPropagation();
@@ -338,7 +369,7 @@ function generateCategories() {
         } else {
             recipesByCategory[category].sort((a,b) => a.title.localeCompare(b.title)).forEach(recipe => {
                 const recipeLi = document.createElement('li');
-                recipeLi.className = 'recipe-link px-4 py-1';
+                recipeLi.className = 'recipe-link';
                 recipeLi.textContent = recipe.title;
                 recipeLi.onclick = (e) => {
                     e.stopPropagation();
@@ -354,7 +385,6 @@ function generateCategories() {
         categoryList.appendChild(li);
     });
 }
-
 
 // --- NEW APPLICATION INIT FUNCTIONS ---
 
