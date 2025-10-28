@@ -3,6 +3,7 @@ const allBooks = {
         "title": "MIKE Personal",
         "sources": [
             { "file": "data/recipes_breakfast.js", "arrayName": "recipesBreakfast" },
+            { "file": "data/recipes_appetizers.js", "arrayName": "recipesAppetizers" },
             { "file": "data/recipes_breads.js", "arrayName": "recipesBreads" },
             { "file": "data/recipes_sourdough.js", "arrayName": "recipesSourdough" },
             { "file": "data/recipes_mains.js", "arrayName": "recipesMains" },
