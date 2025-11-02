@@ -32,5 +32,38 @@ var recipesAppetizers = [
             "12. Cool: Let chips cool on a wire rack to fully crisp.",
             "13. Finish: Taste and add more salt or a squeeze of lime juice while warm, if desired."
         ]
+    },
+    {
+        "id": "teriyaki_beef_skewers",
+        "title": "Teriyaki Beef Skewers with Sirloin Tips",
+        "category": "Appetizers",
+        "ingredients": [
+            "1/2 cup soy sauce (low sodium recommended)",
+            "1/4 cup packed brown sugar (or honey)",
+            "1/4 cup water (or pineapple juice)",
+            "2 tablespoons rice vinegar (or mirin)",
+            "1 tablespoon sesame oil",
+            "2-3 cloves garlic, minced",
+            "1 tablespoon fresh ginger, grated",
+            "1 tablespoon cornstarch",
+            "1 teaspoon red pepper flakes (optional)",
+            "1.5 to 2 pounds sirloin tips",
+            "1 red bell pepper, cut into 1-inch squares",
+            "1 green bell pepper, cut into 1-inch squares",
+            "1 large red onion, cut into 1-inch chunks",
+            "1 cup pineapple chunks (optional)",
+            "8-12 bamboo or metal skewers"
+        ],
+        "instructions": [
+            "1. Prepare the Marinade: In a bowl, whisk together soy sauce, brown sugar, water, rice vinegar, sesame oil, garlic, ginger, and optional red pepper flakes. Do NOT add the cornstarch yet.",
+            "2. Reserve the Glaze: Pour about 1/3 cup of the marinade into a separate small bowl. Cover and refrigerate. This will be your basting glaze.",
+            "3. Cut and Marinate Beef: Cut sirloin tips into uniform 1-1.5 inch cubes. Place in a bowl or bag and pour the remaining (larger portion) of marinade over the beef. Marinate in the refrigerator for at least 1 hour, or up to 8 hours.",
+            "4. Prepare for Grilling: If using wooden skewers, soak them in water for 30 minutes. Preheat grill to medium-high heat (400°F / 200°C).",
+            "5. Assemble Skewers: Remove beef from marinade and discard the used marinade. Thread beef and vegetables onto skewers, alternating ingredients.",
+            "6. Make the Glaze: Take the reserved 1/3 cup of marinade. Pour it into a small saucepan and whisk in the cornstarch until dissolved. Bring to a simmer over medium heat, whisking constantly, until it thickens (2-3 minutes).",
+            "7. Grill the Skewers: Lightly oil grill grates. Grill skewers for 8-12 minutes total, turning every 2-3 minutes. During the last 2-3 minutes, brush all sides with the thickened teriyaki glaze.",
+            "8. Rest and Serve: Transfer skewers to a platter and let rest for 5 minutes before serving.",
+            "No Grill Option: Bake at 400°F (200°C) on a foil-lined sheet for 12-15 minutes, flipping halfway. Brush with glaze in the last 2-3 minutes."
+        ]
     }
 ];
